@@ -1,11 +1,30 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
+import logging
 from fastapi.middleware.cors import CORSMiddleware
+from db.base import init_db
+
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan():
+    # Startup: Initialize database
+    logger.info("Initializing database...")
+    await init_db()
+    logger.info("Database initialized successfully")
+    yield
+    
+    logger.info("Shutting down...")
+
 
 app = FastAPI(
     title="Cocktail Club Hospitality – AI Recipe Fallback Service (v1)",
     description="API that accepts a user query and returns a structured JSON recipe response.",
     version="1.0.0"
 )
+
 
 # Configure CORS
 app.add_middleware(
