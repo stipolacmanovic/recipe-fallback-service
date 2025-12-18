@@ -24,5 +24,3 @@ class RecipeResponse(BaseModel):
     tasting_profile: Optional[TastingProfile] = Field(None, description="Tasting profile on 0-5 scale")
     method: List[str] = Field(..., description="Step-by-step method")
     tip: Optional[str] = Field(None, description="Bartender's tip")
-    image_prompt: Optional[str] = Field(None, description="Image generation prompt (disabled by default)")
-

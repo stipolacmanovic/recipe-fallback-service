@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, JSON, DateTime
+from sqlalchemy import Column, Integer, String, Text, JSON, DateTime
 from sqlalchemy.sql import func
 from datetime import datetime
 from db.base import Base
@@ -7,7 +7,7 @@ from db.base import Base
 class Recipe(Base):
     __tablename__ = "recipes"
 
-    id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String, nullable=False, index=True)
     history = Column(Text, nullable=True)
     technique = Column(String, nullable=True)

@@ -105,8 +105,7 @@ Return ONLY valid JSON. Do not include any markdown formatting or code blocks.""
                 ingredients=ingredients,
                 tasting_profile=tasting_profile,
                 method=recipe_data.get("method", []),
-                tip=recipe_data.get("tip"),
-                image_prompt=recipe_data.get("image_prompt")
+                tip=recipe_data.get("tip")
             )
             
             return recipe_response

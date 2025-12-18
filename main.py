@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan():
+async def lifespan(app: FastAPI):
     # Startup: Initialize database
     logger.info("Initializing database...")
     await init_db()
@@ -23,7 +23,8 @@ async def lifespan():
 app = FastAPI(
     title="Cocktail Club Hospitality – AI Recipe Fallback Service (v1)",
     description="API that accepts a user query and returns a structured JSON recipe response.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 
