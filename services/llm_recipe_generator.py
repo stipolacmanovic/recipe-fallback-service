@@ -21,42 +21,84 @@ class RecipeGenerator:
 
     async def generate_recipe(self, query: str) -> Optional[RecipeResponse]:
 
-        prompt = f"""You are a cocktail expert creating a recipe in the Cocktail Club.
+        prompt = f"""You are a professional bartender creating cocktail recipes in the Cocktail Club style.
 
-Generate a complete cocktail recipe for: "{query}"
+Generate a complete, detailed cocktail recipe for: "{query}"
 
 The recipe must be formatted as a JSON object with the following structure:
 {{
-    "title": "Cocktail title",
-    "history": "Short history/origin (2–4 sentences, factual and general)",
-    "technique": "Preparation technique",
-    "glass_type": "Recommended glass type",
+    "title": "String - Cocktail name in UPPERCASE format (e.g., MARGARITA, WHISKEY SOUR)",
+    "history": "String - Short history/origin starting with 'The [cocktail name]'s history...' (2-4 sentences, factual and general, include dates/places/people when known)",
+    "technique": "String - Preparation technique (e.g., Shaken, Stirred, Built, Muddled)",
+    "glass_type": "String - Recommended glass type (e.g., Coupe, Rocks Glass, Coupe or Rocks Glass, Highball)",
     "ingredients": [
-        {{"name": "Ingredient name", "oz": 2.0, "ml": 59.1}},
-        {{"name": "Another ingredient", "oz": 1.0, "ml": 29.6}}
+        "Array of objects, each with:",
+        "  - name: String - Ingredient name formatted as '[amount] oz ([amount] ml) [Ingredient Name]' or preparation note (e.g., 'Salt for rim', 'Egg White')",
+        "  - oz: Number - Amount in ounces (use 0.0 for non-liquid ingredients)",
+        "  - ml: Number - Amount in milliliters (use 0.0 for non-liquid ingredients)"
     ],
     "tasting_profile": {{
-        "alcohol": 3,
-        "bitter": 2,
-        "sour": 2,
-        "sweet": 2
+        "alcohol": "Integer 0-5 - Alcohol intensity (0=non-alcoholic, 5=very strong)",
+        "bitter": "Integer 0-5 - Bitter intensity (0=none, 5=very intense)",
+        "sour": "Integer 0-5 - Sour intensity (0=none, 5=very intense)",
+        "sweet": "Integer 0-5 - Sweet intensity (0=none, 5=very intense)"
     }},
     "method": [
-        "Step 1 description",
-        "Step 2 description",
-        "Step 3 description"
+        "Array of strings - Step-by-step instructions (5-7 steps)",
+        "Each step should start with action verb + colon (e.g., 'Prepare:', 'Ice:', 'Add ingredients:', 'Shake:', 'Strain:', 'Garnish and serve:')",
+        "Include specific details: times, temperatures, techniques"
     ],
-    "tip": "One helpful bartender's tip for making this cocktail"
+    "tip": "String - Practical bartender's tip with actionable advice, can include variations with specific measurements (1-3 sentences)"
 }}
 
 
-Requirements:
-- All measurements must be provided in both ounces (oz) and milliliters (ml)
-- Tasting profile values must be integers between 0 and 5
-- History should be 2-4 sentences, factual and general
-- Method should be clear step-by-step instructions
-- Tip should be practical and helpful
-- If the query is not a real cocktail, create a reasonable interpretation
+CRITICAL REQUIREMENTS - Follow the Cocktail Club style exactly:
+
+1. **Title**: Use UPPERCASE format (e.g., "MARGARITA", "WHISKEY SOUR")
+
+2. **History**: 
+   - Always start with "The [cocktail name]'s history..." or similar opening
+   - Write 2-4 sentences that are factual and general
+   - Include specific historical details (dates, places, people) when known
+   - If origin is disputed, mention the most popular theories
+   - Use narrative, engaging style
+
+3. **Technique**: 
+   - Use single word or short phrase: "Shaken", "Stirred", "Built", "Muddled", "Shaken (dry shake then wet shake)"
+   - Common techniques: Shaken, Stirred, Built, Muddled
+
+4. **Glass Type**: 
+   - Specify the recommended glass: "Coupe", "Rocks Glass", "Coupe or Rocks Glass", "Highball", "Martini Glass", etc.
+   - Can list alternatives if multiple are appropriate
+
+5. **Ingredients**:
+   - Format ingredient names as: "[amount] oz ([amount] ml) [Ingredient Name]"
+   - Include preparation notes when relevant (e.g., "Salt for rim", "Egg White", "Sugar for rim (optional)")
+   - Provide accurate oz and ml values (use standard conversions: 1 oz = 29.5735 ml, round to whole numbers or one decimal place)
+   - For non-liquid ingredients (salt, garnishes, bitters), use oz: 0.0, ml: 0.0
+   - List ingredients in order of use or by volume (largest first)
+
+6. **Tasting Profile**: 
+   - Use integers 0-5 for each dimension
+   - Be accurate based on the cocktail's actual characteristics
+   - Alcohol: 0 (non-alcoholic) to 5 (very strong)
+   - Bitter, Sour, Sweet: 0 (none) to 5 (very intense)
+
+7. **Method**:
+   - Each step should start with an action verb followed by a colon (Prepare:, Ice:, Add ingredients:, Shake:, Strain:, Garnish and serve:, etc.)
+   - Include specific details: times (e.g., "10-15 seconds"), temperatures ("chilled"), techniques ("double-strain")
+   - Be detailed and instructional, like: "Prepare: Rim a chilled coupe or rocks glass with salt. To do this, run a lime wedge around the rim and dip it onto a plate of coarse salt."
+   - Include 5-7 detailed steps
+   - Each step should be a complete sentence with clear instructions
+
+8. **Tip**:
+   - Provide practical, actionable advice
+   - Can include variations or modifications with specific measurements
+   - Should be helpful for bartenders making the drink
+   - Can be 1-3 sentences with specific measurements or techniques
+   - Example style: "For a spicy kick, muddle a few slices of jalapeño in the shaker before adding the other ingredients. For a smoother, richer texture, add 0.5 oz (15 ml) of agave nectar and reduce the triple sec to 0.5 oz (15 ml)."
+
+9. **Style**: Write in a professional, engaging tone suitable for hospitality staff. Be specific and detailed. Match the format and detail level of classic cocktail recipes.
 
 Return ONLY valid JSON. Do not include any markdown formatting or code blocks."""
 
@@ -68,7 +110,7 @@ Return ONLY valid JSON. Do not include any markdown formatting or code blocks.""
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a professional bartender creating cocktail recipes in the Cocktail Club. Always return valid JSON only."
+                        "content": "You are a professional bartender creating detailed cocktail recipes in the Cocktail Club style. Your recipes should be professional, engaging, and suitable for hospitality staff. Always return valid JSON only, matching the exact format specified."
                     },
                     {
                         "role": "user",
