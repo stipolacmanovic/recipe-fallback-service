@@ -6,4 +6,4 @@ sqlalchemy==2.0.45
 python-dotenv==1.0.0
 aiosqlite==0.21.0
 pydantic==2.12.5
-
+openai>=1.12.0
