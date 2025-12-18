@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from db.base import init_db
+from api.routes import router
 
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+app.include_router(router)
 
 
 @app.get("/")
