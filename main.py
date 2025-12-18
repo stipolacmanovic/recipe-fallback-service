@@ -1,6 +1,9 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 import logging
+import os
 from fastapi.middleware.cors import CORSMiddleware
 from db.base import init_db
 from api.routes import router
@@ -40,9 +43,14 @@ app.add_middleware(
 
 app.include_router(router)
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get("/")
 async def root():
+    ui_path = os.path.join("static", "index.html")
+    if os.path.exists(ui_path):
+        return FileResponse(ui_path)
     return {"message": "Welcome to AI Recipe Fallback Service"}
 
 

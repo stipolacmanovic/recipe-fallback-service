@@ -42,6 +42,7 @@ async def get_recipe(
             try:
                 recipe_data = {
                     "title": recipe_response.title,
+                    "search_query": query.strip(),  # Store original query for exact matching
                     "history": recipe_response.history,
                     "technique": recipe_response.technique,
                     "glass_type": recipe_response.glass_type,

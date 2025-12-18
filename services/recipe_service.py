@@ -15,15 +15,36 @@ def generate_recipe_id(query: str) -> str:
     return f"recipe_{hash_obj.hexdigest()[:12]}"
 
 
+def normalize_for_search(text: str) -> str:
+    if not text:
+        return ""
+    normalized = " ".join(text.lower().strip().split())
+    return normalized
+
+
 async def search_recipe_by_query(
     db: AsyncSession,
     query: str
 ) -> Optional[Recipe]:
-    query_lower = query.lower().strip()
+    normalized_query = normalize_for_search(query)
+    
+    if not normalized_query:
+        logger.warning(f"Empty query")
+        return None
     
     result = await db.execute(
         select(Recipe).where(
-            sql_func.lower(Recipe.title) == query_lower
+            sql_func.lower(Recipe.search_query) == normalized_query
+        )
+    )
+    recipe = result.scalar_one_or_none()
+    
+    if recipe:
+        return recipe
+    
+    result = await db.execute(
+        select(Recipe).where(
+            sql_func.lower(Recipe.title) == normalized_query
         )
     )
     return result.scalar_one_or_none()
