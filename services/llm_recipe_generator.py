@@ -1,11 +1,21 @@
 import json
+import ast
 import logging
 from typing import Optional
 from openai import AsyncOpenAI
+from openai import APIError
 from core.config import OPENAI_API_KEY, OPENAI_MODEL
 from schemas.recipe import RecipeResponse, Ingredient, TastingProfile
 
 logger = logging.getLogger(__name__)
+
+
+class RecipeGenerationError(Exception):
+    """Custom exception for recipe generation errors with detailed message"""
+    def __init__(self, message: str, original_error: Optional[Exception] = None):
+        self.message = message
+        self.original_error = original_error
+        super().__init__(self.message)
 
 
 class RecipeGenerator:    
@@ -103,8 +113,6 @@ CRITICAL REQUIREMENTS - Follow the Cocktail Club style exactly:
 Return ONLY valid JSON. Do not include any markdown formatting or code blocks."""
 
         try:
-            logger.info(f"Generating recipe via LLM for query: {query}")
-            
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
@@ -118,7 +126,7 @@ Return ONLY valid JSON. Do not include any markdown formatting or code blocks.""
                     }
                 ],
                 temperature=0.3,
-                max_tokens=2000,
+                max_completion_tokens=2000,
                 response_format={"type": "json_object"}
             )
 
@@ -152,17 +160,45 @@ Return ONLY valid JSON. Do not include any markdown formatting or code blocks.""
             
             return recipe_response
 
-        except Exception as e:
-            error_msg = str(e)
-            if "429" in error_msg or "insufficient_quota" in error_msg or "quota" in error_msg.lower():
+        except APIError as e:
+            # Extract the actual error message from OpenAI API error
+            error_message = str(e)
+            
+            # Try to extract message from exception body if available (OpenAI SDK v1.x)
+            if hasattr(e, 'body') and e.body:
+                try:
+                    if isinstance(e.body, dict) and 'error' in e.body:
+                        if 'message' in e.body['error']:
+                            error_message = e.body['error']['message']
+                except (ValueError, TypeError, AttributeError):
+                    pass
+            
+            # Try to parse error message from string format: "Error code: XXX - {'error': {'message': '...'}}"
+            if "Error code:" in error_message and "'error'" in error_message:
+                try:
+                    # Extract the dict part after "Error code: XXX - "
+                    dict_start = error_message.find("{")
+                    if dict_start != -1:
+                        dict_str = error_message[dict_start:]
+                        error_dict = ast.literal_eval(dict_str)
+                        if 'error' in error_dict and 'message' in error_dict['error']:
+                            error_message = error_dict['error']['message']
+                except (ValueError, SyntaxError):
+                    pass
+            
+            if "429" in error_message or "insufficient_quota" in error_message or "quota" in error_message.lower():
                 logger.error(
                     f"OpenAI API quota exceeded or billing issue. "
                     f"Please check your OpenAI account billing and usage limits. "
-                    f"Error: {error_msg}"
+                    f"Error: {error_message}"
                 )
             else:
-                logger.error(f"Error generating recipe: {error_msg}")
-            raise Exception(e)
+                logger.error(f"Error generating recipe: {error_message}")
+            raise RecipeGenerationError(error_message, e)
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"Error generating recipe: {error_msg}")
+            raise RecipeGenerationError(error_msg, e)
 
 
 _recipe_generator: Optional[RecipeGenerator] = None

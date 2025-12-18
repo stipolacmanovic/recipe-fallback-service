@@ -8,7 +8,7 @@ from services.recipe_service import (
     search_recipe_by_query,
     recipe_to_response,
 )
-from services.llm_recipe_generator import get_recipe_generator
+from services.llm_recipe_generator import get_recipe_generator, RecipeGenerationError
 from schemas.recipe import RecipeResponse
 
 
@@ -67,11 +67,27 @@ async def get_recipe(
             
             return recipe_response
 
-        except Exception as e:
-            logger.error(f"Error generating recipe: {e}")
+        except ValueError as e:
+            error_msg = str(e)
+            if "OPENAI_API_KEY" in error_msg or "OpenAI API key" in error_msg:
+                logger.error(f"OpenAI API key not configured: {error_msg}")
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable."
+                )
+            raise
+        except RecipeGenerationError as e:
+            logger.error(f"Error generating recipe: {e.message}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Query must be related to cocktails or wine"
+                detail=e.message
+            )
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"Error generating recipe: {error_msg}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_msg if error_msg else "Query must be related to cocktails"
             )
     except HTTPException:
         raise

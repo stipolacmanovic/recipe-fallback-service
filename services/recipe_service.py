@@ -4,15 +4,8 @@ from typing import Optional
 import logging
 from models.recipe import Recipe
 from schemas.recipe import RecipeResponse, Ingredient, TastingProfile
-import hashlib
 
 logger = logging.getLogger(__name__)
-
-
-def generate_recipe_id(query: str) -> str:
-    normalized = query.lower().strip()
-    hash_obj = hashlib.md5(normalized.encode())
-    return f"recipe_{hash_obj.hexdigest()[:12]}"
 
 
 def normalize_for_search(text: str) -> str:
