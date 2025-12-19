@@ -9,6 +9,7 @@ from services.recipe_service import (
     recipe_to_response,
 )
 from services.llm_recipe_generator import get_recipe_generator, RecipeGenerationError
+from services.query_validator import validate_cocktail_wine_query
 from schemas.recipe import RecipeResponse
 
 
@@ -29,6 +30,14 @@ async def get_recipe(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Query parameter is required"
+        )
+    
+    is_valid, error_message = validate_cocktail_wine_query(query)
+    if not is_valid:
+        logger.warning(f"Query validation failed: '{query}' - {error_message}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_message
         )
 
     try:
