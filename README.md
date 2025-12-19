@@ -18,6 +18,27 @@ docker-compose up --build
 
 The service will be available at http://localhost:8000
 
+## Seeding the Database
+
+To populate the database with mock recipe data, run the seed script:
+
+```bash
+python scripts/seed.py
+```
+
+This will:
+- Initialize the database if it doesn't exist
+- Add mock recipes (Margarita, Whiskey Sour, Sidecar) to the database
+
+
+## Testing
+
+Run the test suite:
+
+```bash
+pytest
+```
+
 ## Usage
 
 ### Get Recipe

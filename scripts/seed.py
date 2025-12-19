@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from db.base import get_db, init_db
 from services.recipe_service import create_recipe, search_recipe_by_query
-from data.mock_recipes import get_mock_recipes
+from mock.mock_recipes import get_mock_recipes
 import logging
 
 logging.basicConfig(
