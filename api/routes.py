@@ -34,9 +34,11 @@ async def get_recipe(
     try:
         recipe = await search_recipe_by_query(db, query)
         if recipe:
+            logger.info(f"Found recipe in database: {recipe.title}")
             return await recipe_to_response(recipe)
 
         try:
+            logger.info(f"Generating recipe for query: {query}")
             recipe_response = await get_recipe_generator().generate_recipe(query)
             
             try:
@@ -61,6 +63,7 @@ async def get_recipe(
                     "method": recipe_response.method,
                     "tip": recipe_response.tip,
                 }
+                logger.info(f"Saving Generated Recipe in database: {recipe_data['title']}")
                 await create_recipe(db, recipe_data)
             except Exception as e:
                 logger.error(f"Error creating recipe: {e}")
